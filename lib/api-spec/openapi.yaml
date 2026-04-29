@@ -3,20 +3,28 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AUM Packaging Customer Order Management API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: auth
+  - name: customers
+  - name: products
+  - name: orders
+  - name: quotations
+  - name: dispatch
+  - name: payments
+  - name: notifications
+  - name: dashboard
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +32,1236 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Log out
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List customers
+      responses:
+        "200":
+          description: Customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerRequest"
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /customers/{customerId}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products
+      responses:
+        "200":
+          description: Products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List orders (filtered by role)
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: customerId
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderSummary"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create a new requirement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Order detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderDetail"
+
+  /orders/{orderId}/status:
+    post:
+      operationId: updateOrderStatus
+      tags: [orders]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}/quotation:
+    post:
+      operationId: createQuotation
+      tags: [quotations]
+      summary: Sales sends a quotation (or revision) for an order
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuotationRequest"
+      responses:
+        "200":
+          description: Quotation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quotation"
+
+  /orders/{orderId}/quotation/respond:
+    post:
+      operationId: respondToQuotation
+      tags: [quotations]
+      summary: Customer accepts, rejects or requests revision
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuotationResponseRequest"
+      responses:
+        "200":
+          description: Updated quotation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quotation"
+
+  /orders/{orderId}/documents:
+    get:
+      operationId: listDispatchDocuments
+      tags: [dispatch]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DispatchDocument"
+    post:
+      operationId: addDispatchDocument
+      tags: [dispatch]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDispatchDocumentRequest"
+      responses:
+        "200":
+          description: Document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchDocument"
+
+  /orders/{orderId}/payments:
+    get:
+      operationId: listOrderPayments
+      tags: [payments]
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Accounts records an invoice / payment update
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentRequest"
+      responses:
+        "200":
+          description: Payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /payments/{paymentId}/proofs:
+    post:
+      operationId: submitPaymentProof
+      tags: [payments]
+      summary: Customer uploads payment proof
+      parameters:
+        - $ref: "#/components/parameters/PaymentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitPaymentProofRequest"
+      responses:
+        "200":
+          description: Proof
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentProof"
+
+  /payment-proofs/{proofId}/review:
+    post:
+      operationId: reviewPaymentProof
+      tags: [payments]
+      summary: Accounts approves or rejects payment proof
+      parameters:
+        - $ref: "#/components/parameters/ProofId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewPaymentProofRequest"
+      responses:
+        "200":
+          description: Reviewed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentProof"
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{notificationId}/read:
+    post:
+      operationId: markNotificationRead
+      tags: [notifications]
+      parameters:
+        - $ref: "#/components/parameters/NotificationId"
+      responses:
+        "200":
+          description: Marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      responses:
+        "200":
+          description: All marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /dashboard/customer:
+    get:
+      operationId: getCustomerDashboard
+      tags: [dashboard]
+      summary: Customer-facing dashboard summary
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerDashboard"
+
+  /dashboard/admin:
+    get:
+      operationId: getAdminDashboard
+      tags: [dashboard]
+      summary: Admin/team dashboard summary
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDashboard"
+
+  /dashboard/admin/outstanding:
+    get:
+      operationId: getCustomerOutstanding
+      tags: [dashboard]
+      summary: Customer-wise outstanding balances
+      responses:
+        "200":
+          description: Outstanding list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerOutstanding"
+
+  /dashboard/admin/product-summary:
+    get:
+      operationId: getProductSummary
+      tags: [dashboard]
+      summary: Product-wise order summary
+      responses:
+        "200":
+          description: Product summary
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductOrderSummary"
+
 components:
+  parameters:
+    CustomerId:
+      in: path
+      name: customerId
+      required: true
+      schema:
+        type: string
+    OrderId:
+      in: path
+      name: orderId
+      required: true
+      schema:
+        type: string
+    PaymentId:
+      in: path
+      name: paymentId
+      required: true
+      schema:
+        type: string
+    ProofId:
+      in: path
+      name: proofId
+      required: true
+      schema:
+        type: string
+    NotificationId:
+      in: path
+      name: notificationId
+      required: true
+      schema:
+        type: string
+
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    SuccessResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+
+    UserRole:
+      type: string
+      enum: [customer, sales, accounts, dispatch, super_admin]
+
+    OrderStatus:
+      type: string
+      enum:
+        - requirement_received
+        - quotation_sent
+        - quote_revision_requested
+        - quote_accepted
+        - order_confirmed
+        - in_production
+        - ready_for_dispatch
+        - partially_dispatched
+        - fully_dispatched
+        - invoice_generated
+        - payment_pending
+        - payment_received
+        - order_closed
+
+    QuotationStatus:
+      type: string
+      enum: [sent, accepted, rejected, revision_requested]
+
+    PaymentStatus:
+      type: string
+      enum: [pending, part_paid, paid, overdue]
+
+    PaymentProofStatus:
+      type: string
+      enum: [submitted, approved, rejected]
+
+    ProductCategory:
+      type: string
+      enum: [preform, bottle, cap, closure]
+
+    DispatchDocType:
+      type: string
+      enum: [invoice, eway_bill, lr_copy, delivery_challan, packing_list]
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    AuthSession:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/AuthUser"
+
+    AuthUser:
+      type: object
+      required: [id, email, name, role]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          $ref: "#/components/schemas/UserRole"
+        customerId:
+          type: string
+          nullable: true
+        customerName:
+          type: string
+          nullable: true
+
+    Customer:
+      type: object
+      required:
+        - id
+        - name
+        - gstNo
+        - address
+        - contactPerson
+        - phone
+        - email
+        - creditLimit
+        - paymentTerms
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        gstNo:
+          type: string
+        address:
+          type: string
+        contactPerson:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        creditLimit:
+          type: number
+        paymentTerms:
+          type: string
+
+    CreateCustomerRequest:
+      type: object
+      required: [name, gstNo, address, contactPerson, phone, email, creditLimit, paymentTerms]
+      properties:
+        name:
+          type: string
+        gstNo:
+          type: string
+        address:
+          type: string
+        contactPerson:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        creditLimit:
+          type: number
+        paymentTerms:
+          type: string
+
+    Product:
+      type: object
+      required: [id, category, name]
+      properties:
+        id:
+          type: string
+        category:
+          $ref: "#/components/schemas/ProductCategory"
+        name:
+          type: string
+        neckType:
+          type: string
+          nullable: true
+        gramWeight:
+          type: number
+          nullable: true
+        description:
+          type: string
+          nullable: true
+
+    OrderSummary:
+      type: object
+      required:
+        - id
+        - orderNumber
+        - customerId
+        - customerName
+        - productName
+        - quantity
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+        orderNumber:
+          type: string
+        customerId:
+          type: string
+        customerName:
+          type: string
+        productName:
+          type: string
+        quantity:
+          type: integer
+        color:
+          type: string
+          nullable: true
+        requiredDeliveryDate:
+          type: string
+          format: date
+          nullable: true
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        createdAt:
+          type: string
+          format: date-time
+        latestQuotedRate:
+          type: number
+          nullable: true
+        outstandingAmount:
+          type: number
+          nullable: true
+
+    Order:
+      type: object
+      required:
+        - id
+        - orderNumber
+        - customerId
+        - customerName
+        - productId
+        - productName
+        - quantity
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+        orderNumber:
+          type: string
+        customerId:
+          type: string
+        customerName:
+          type: string
+        productId:
+          type: string
+        productName:
+          type: string
+        category:
+          $ref: "#/components/schemas/ProductCategory"
+        neckType:
+          type: string
+          nullable: true
+        gramWeight:
+          type: number
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        quantity:
+          type: integer
+        requiredDeliveryDate:
+          type: string
+          format: date
+          nullable: true
+        deliveryLocation:
+          type: string
+          nullable: true
+        remarks:
+          type: string
+          nullable: true
+        attachmentUrl:
+          type: string
+          nullable: true
+        attachmentName:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        createdAt:
+          type: string
+          format: date-time
+
+    OrderDetail:
+      type: object
+      required: [order, history, quotations, dispatchDocuments, payments]
+      properties:
+        order:
+          $ref: "#/components/schemas/Order"
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderStatusEvent"
+        quotations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Quotation"
+        dispatchDocuments:
+          type: array
+          items:
+            $ref: "#/components/schemas/DispatchDocument"
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentDetail"
+
+    OrderStatusEvent:
+      type: object
+      required: [id, orderId, status, updatedByName, createdAt]
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        remarks:
+          type: string
+          nullable: true
+        updatedByName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateOrderRequest:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId:
+          type: string
+        productName:
+          type: string
+          nullable: true
+        neckType:
+          type: string
+          nullable: true
+        gramWeight:
+          type: number
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        quantity:
+          type: integer
+        requiredDeliveryDate:
+          type: string
+          format: date
+          nullable: true
+        deliveryLocation:
+          type: string
+          nullable: true
+        remarks:
+          type: string
+          nullable: true
+        attachmentUrl:
+          type: string
+          nullable: true
+        attachmentName:
+          type: string
+          nullable: true
+        customerId:
+          type: string
+          nullable: true
+
+    UpdateOrderStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        remarks:
+          type: string
+          nullable: true
+
+    Quotation:
+      type: object
+      required:
+        - id
+        - orderId
+        - revisionNo
+        - rate
+        - gstPercent
+        - freight
+        - discount
+        - paymentTerms
+        - status
+        - totalAmount
+        - createdAt
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        revisionNo:
+          type: integer
+        rate:
+          type: number
+        gstPercent:
+          type: number
+        freight:
+          type: number
+        discount:
+          type: number
+        paymentTerms:
+          type: string
+        expectedDispatchDate:
+          type: string
+          format: date
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/QuotationStatus"
+        responseReason:
+          type: string
+          nullable: true
+        totalAmount:
+          type: number
+        createdByName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateQuotationRequest:
+      type: object
+      required: [rate, gstPercent, freight, discount, paymentTerms]
+      properties:
+        rate:
+          type: number
+        gstPercent:
+          type: number
+        freight:
+          type: number
+        discount:
+          type: number
+        paymentTerms:
+          type: string
+        expectedDispatchDate:
+          type: string
+          format: date
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+
+    QuotationResponseRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [accept, reject, request_revision]
+        reason:
+          type: string
+          nullable: true
+
+    DispatchDocument:
+      type: object
+      required: [id, orderId, docType, fileName, dispatchDate, createdAt]
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        docType:
+          $ref: "#/components/schemas/DispatchDocType"
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+          nullable: true
+        transportDetails:
+          type: string
+          nullable: true
+        vehicleNumber:
+          type: string
+          nullable: true
+        dispatchDate:
+          type: string
+          format: date
+        quantityDispatched:
+          type: integer
+          nullable: true
+        uploadedByName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateDispatchDocumentRequest:
+      type: object
+      required: [docType, fileName, dispatchDate]
+      properties:
+        docType:
+          $ref: "#/components/schemas/DispatchDocType"
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+          nullable: true
+        transportDetails:
+          type: string
+          nullable: true
+        vehicleNumber:
+          type: string
+          nullable: true
+        dispatchDate:
+          type: string
+          format: date
+        quantityDispatched:
+          type: integer
+          nullable: true
+
+    Payment:
+      type: object
+      required:
+        - id
+        - orderId
+        - invoiceAmount
+        - paymentReceived
+        - balanceOutstanding
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        invoiceNumber:
+          type: string
+          nullable: true
+        invoiceAmount:
+          type: number
+        paymentReceived:
+          type: number
+        balanceOutstanding:
+          type: number
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        status:
+          $ref: "#/components/schemas/PaymentStatus"
+        remarks:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    PaymentDetail:
+      type: object
+      required: [payment, proofs]
+      properties:
+        payment:
+          $ref: "#/components/schemas/Payment"
+        proofs:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentProof"
+
+    CreatePaymentRequest:
+      type: object
+      required: [invoiceAmount, paymentReceived]
+      properties:
+        invoiceNumber:
+          type: string
+          nullable: true
+        invoiceAmount:
+          type: number
+        paymentReceived:
+          type: number
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        remarks:
+          type: string
+          nullable: true
+
+    PaymentProof:
+      type: object
+      required: [id, paymentId, fileName, status, createdAt]
+      properties:
+        id:
+          type: string
+        paymentId:
+          type: string
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+          nullable: true
+        amountClaimed:
+          type: number
+          nullable: true
+        payerRemarks:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/PaymentProofStatus"
+        reviewRemarks:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    SubmitPaymentProofRequest:
+      type: object
+      required: [fileName]
+      properties:
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+          nullable: true
+        amountClaimed:
+          type: number
+          nullable: true
+        payerRemarks:
+          type: string
+          nullable: true
+
+    ReviewPaymentProofRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [approve, reject]
+        reviewRemarks:
+          type: string
+          nullable: true
+
+    Notification:
+      type: object
+      required: [id, title, body, read, createdAt]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        link:
+          type: string
+          nullable: true
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    StatusCount:
+      type: object
+      required: [status, count]
+      properties:
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        count:
+          type: integer
+
+    CustomerDashboard:
+      type: object
+      required:
+        - totalRequirements
+        - pendingQuotations
+        - confirmedOrders
+        - inProduction
+        - dispatched
+        - paymentPending
+        - totalOutstanding
+        - recentTimeline
+      properties:
+        totalRequirements:
+          type: integer
+        pendingQuotations:
+          type: integer
+        confirmedOrders:
+          type: integer
+        inProduction:
+          type: integer
+        dispatched:
+          type: integer
+        paymentPending:
+          type: integer
+        totalOutstanding:
+          type: number
+        recentTimeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimelineEntry"
+
+    TimelineEntry:
+      type: object
+      required: [orderId, orderNumber, productName, status, createdAt]
+      properties:
+        orderId:
+          type: string
+        orderNumber:
+          type: string
+        productName:
+          type: string
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        remarks:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    AdminDashboard:
+      type: object
+      required:
+        - newRequirements
+        - pendingQuotations
+        - awaitingConfirmation
+        - inProduction
+        - dispatchPending
+        - paymentPending
+        - overdueCustomers
+        - totalOutstanding
+        - statusBreakdown
+      properties:
+        newRequirements:
+          type: integer
+        pendingQuotations:
+          type: integer
+        awaitingConfirmation:
+          type: integer
+        inProduction:
+          type: integer
+        dispatchPending:
+          type: integer
+        paymentPending:
+          type: integer
+        overdueCustomers:
+          type: integer
+        totalOutstanding:
+          type: number
+        statusBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusCount"
+
+    CustomerOutstanding:
+      type: object
+      required: [customerId, customerName, totalInvoiced, totalReceived, outstanding, overdueAmount]
+      properties:
+        customerId:
+          type: string
+        customerName:
+          type: string
+        totalInvoiced:
+          type: number
+        totalReceived:
+          type: number
+        outstanding:
+          type: number
+        overdueAmount:
+          type: number
+
+    ProductOrderSummary:
+      type: object
+      required: [productId, productName, category, totalQuantity, orderCount]
+      properties:
+        productId:
+          type: string
+        productName:
+          type: string
+        category:
+          $ref: "#/components/schemas/ProductCategory"
+        totalQuantity:
+          type: integer
+        orderCount:
+          type: integer

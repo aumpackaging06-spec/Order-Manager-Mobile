@@ -1,0 +1,184 @@
+Build a mobile-first customer order management app for AUM Packaging.
+
+Company: AUM Packaging
+Products: PET Preforms, PET Bottles, Caps & Closures.
+Goal: Customers should log in, punch product requirements, receive quotation, confirm order, track processing, view dispatch documents, and check outstanding/payment confirmations.
+
+Build as a full-stack responsive web app that works like a mobile app/PWA.
+
+Core user roles:
+1. Customer
+2. Sales/Admin Team
+3. Accounts Team
+4. Dispatch Team
+5. Super Admin
+
+Main modules:
+
+1. Authentication
+- Customer login
+- Admin/team login
+- Role-based dashboard
+- Forgot password
+- Customer profile with GST No., address, contact person, phone, email, credit limit, payment terms
+
+2. Customer Order Requirement Page
+Customer can create requirement/order enquiry with:
+- Product category: Preform / Bottle / Cap / Closure
+- Product name/size
+- Neck type
+- Gram weight
+- Colour
+- Quantity
+- Required delivery date
+- Delivery location
+- Remarks
+- Upload attachment if needed
+- Submit requirement
+
+Order status should begin as: “Requirement Received”
+
+3. Sales Quotation Module
+Sales/Admin can:
+- View new requirements
+- Add quoted rate
+- Add GST, freight, discount, payment terms
+- Add expected dispatch date
+- Send quotation to customer inside the app
+- Change status to “Quotation Sent”
+
+Customer can:
+- View quotation
+- Accept quotation
+- Reject quotation with reason
+- Request revision
+
+After customer accepts, status becomes: “Order Confirmed”
+
+4. Order Processing Workflow
+Create order status stages:
+- Requirement Received
+- Quotation Sent
+- Quote Revision Requested
+- Quote Accepted
+- Order Confirmed
+- In Production
+- Ready for Dispatch
+- Partially Dispatched
+- Fully Dispatched
+- Invoice Generated
+- Payment Pending
+- Payment Received
+- Order Closed
+
+Each status update should show date, time, updated by, and remarks.
+
+5. Customer Order Status Page
+Customer dashboard should show:
+- Total requirements submitted
+- Pending quotations
+- Confirmed orders
+- Orders in production
+- Orders dispatched
+- Payment pending
+- Recent order status timeline
+
+Customer should be able to click any order and see full order history.
+
+6. Dispatch Documents Module
+Dispatch team/admin can upload:
+- Invoice PDF
+- E-way bill
+- LR copy
+- Delivery challan
+- Packing list
+- Transport details
+- Vehicle number
+- Dispatch date
+- Quantity dispatched
+
+Customer can view/download dispatch documents from their dashboard.
+
+7. Outstanding & Payment Confirmation Module
+Accounts team can update:
+- Opening outstanding
+- Invoice amount
+- Payment received
+- Balance outstanding
+- Due date
+- Payment status: Pending / Part Paid / Paid / Overdue
+- Payment remarks
+
+Customer can see:
+- Total outstanding
+- Invoice-wise outstanding
+- Payment confirmation status
+- Payment receipt upload/download
+
+Customer can upload payment proof. Accounts team can approve/reject payment proof.
+
+8. Admin Dashboard
+Admin should see:
+- New requirements
+- Pending quotations
+- Orders awaiting confirmation
+- Orders in production
+- Dispatch pending
+- Payment pending
+- Overdue customers
+- Customer-wise outstanding
+- Product-wise order summary
+
+9. Database
+Use PostgreSQL or Replit database if easier for prototype.
+Create proper tables for:
+- users
+- customers
+- products
+- requirements/orders
+- quotations
+- order_status_history
+- dispatch_documents
+- invoices
+- payments
+- payment_proofs
+- notifications
+
+10. UI/UX
+Design should be premium, clean, professional and mobile-first.
+Use AUM Packaging branding style:
+- Blue, white, and golden accent
+- Corporate look
+- Tagline: “Where Quality Meets Excellence”
+- Simple dashboard cards
+- Clear status badges
+- Easy mobile navigation
+- Bottom navigation for customer app
+
+11. Notifications
+Add in-app notifications for:
+- New quotation sent
+- Quote accepted/rejected
+- Order status updated
+- Dispatch document uploaded
+- Payment confirmed
+- Outstanding overdue
+
+12. Demo Data
+Create sample products:
+- PET Preform 6.6g
+- PET Preform 9.6g
+- PET Preform 10.2g
+- PET Preform 12g
+- PET Preform 13g
+- Water Bottle Cap
+- Bubble Top Cap
+- PET Bottle 750ml
+
+Create sample customer and admin login credentials for testing.
+
+13. Important
+First build a working MVP.
+Keep the code clean and scalable.
+After building, show me how to run it, test it, and deploy it on Replit.
+Also create a simple README explaining the app structure.
